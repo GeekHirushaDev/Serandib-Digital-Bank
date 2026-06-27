@@ -123,6 +123,32 @@
     margin-top: 22px;
     line-height: 1.6;
   }
+
+  /* Transactions list */
+  .txn-list { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .txn {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .txn .ic {
+    width: 30px; height: 30px; flex: none;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+  }
+  .txn.credit .ic { background: rgba(45,212,167,.15); color: var(--accent2); }
+  .txn.debit  .ic { background: rgba(255,107,107,.15); color: var(--danger); }
+  .txn .body { flex: 1; min-width: 0; }
+  .txn .desc { font-size: 14px; font-weight: 600; }
+  .txn .meta { font-size: 11px; color: var(--muted); margin-top: 3px; word-break: break-word; }
+  .txn .right { text-align: right; flex: none; }
+  .txn .amt2 { font-size: 14px; font-weight: 700; white-space: nowrap; }
+  .txn.credit .amt2 { color: var(--accent2); }
+  .txn.debit  .amt2 { color: var(--danger); }
+  .txn .bal { font-size: 11px; color: var(--muted); margin-top: 3px; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -194,6 +220,14 @@
         </div>
         <button class="btn" id="confirmBtn">Confirm Transfer</button>
         <div class="msg" id="otpMsg"></div>
+      </div>
+
+      <!-- Transaction history -->
+      <div style="margin-top:22px; padding-top:18px; border-top: 1px solid var(--border);">
+        <div class="section-title">Transaction history</div>
+        <button class="btn secondary" id="txnBtn">View transactions</button>
+        <div class="msg" id="txnMsg"></div>
+        <div class="txn-list" id="txnList"></div>
       </div>
     </div>
 
@@ -314,6 +348,53 @@
     }
   }
 
+  function renderTransactions(list) {
+    const wrap = $('txnList');
+    wrap.innerHTML = '';
+    if (!list || !list.length) {
+      setMsg($('txnMsg'), 'No transactions found.', '');
+      return;
+    }
+    for (const t of list) {
+      const row = document.createElement('div');
+      row.className = 'txn ' + (t.type === 'credit' ? 'credit' : 'debit');
+      const sign = t.type === 'credit' ? '+' : '−';
+      row.innerHTML =
+        '<div class="ic">' + (t.type === 'credit' ? '↓' : '↑') + '</div>' +
+        '<div class="body">' +
+          '<div class="desc"></div>' +
+          '<div class="meta"></div>' +
+        '</div>' +
+        '<div class="right">' +
+          '<div class="amt2">' + sign + ' ' + (t.amount || '') + '</div>' +
+          '<div class="bal"></div>' +
+        '</div>';
+      row.querySelector('.desc').textContent = t.description || '—';
+      row.querySelector('.meta').textContent = [t.date, t.extra].filter(Boolean).join(' · ');
+      row.querySelector('.bal').textContent = t.balance ? 'Bal ' + t.balance : '';
+      wrap.appendChild(row);
+    }
+    setMsg($('txnMsg'), 'Showing ' + list.length + ' transactions.', 'ok');
+  }
+
+  async function loadTransactions() {
+    $('txnBtn').disabled = true;
+    $('txnBtn').innerHTML = '<span class="spinner"></span> Loading…';
+    setMsg($('txnMsg'), '', '');
+    try {
+      const r = await fetch('/api/transactions');
+      const data = await r.json();
+      if (!data.ok) throw new Error(data.error || 'Failed to load transactions');
+      renderTransactions(data.transactions);
+    } catch (e) {
+      setMsg($('txnMsg'), e.message, 'error');
+    } finally {
+      $('txnBtn').disabled = false;
+      $('txnBtn').textContent = 'Refresh transactions';
+    }
+  }
+
+  $('txnBtn').addEventListener('click', loadTransactions);
   $('unlockBtn').addEventListener('click', unlock);
   $('passcode').addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
   $('refreshBtn').addEventListener('click', refresh);

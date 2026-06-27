@@ -6,6 +6,7 @@ const config = require('./config');
 const { login } = require('./login');
 const { getBalance } = require('./scrape');
 const { navigateToTransfer, confirmTransfer } = require('./navigate');
+const { getTransactions } = require('./transactions');
 
 const app = express();
 app.use(express.json());
@@ -56,6 +57,22 @@ app.get('/api/balance', async (req, res) => {
     ok(res, { balance });
   } catch (err) {
     fail(res, 500, err.message);
+  }
+});
+
+// Read the savings account transaction history.
+app.get('/api/transactions', async (req, res) => {
+  if (!session) return fail(res, 401, 'Not logged in.');
+  if (busy) return fail(res, 429, 'Already working — please wait.');
+  busy = true;
+  try {
+    const transactions = await getTransactions(session.page);
+    ok(res, { transactions });
+  } catch (err) {
+    console.error('[server] transactions error:', err.message);
+    fail(res, 500, err.message);
+  } finally {
+    busy = false;
   }
 });
 
