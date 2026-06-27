@@ -94,7 +94,26 @@ app.post('/api/confirm-transfer', async (req, res) => {
   }
 });
 
-app.listen(config.port, () => {
+// Find this machine's LAN IPv4 so the phone link can be printed at startup.
+function lanIPv4() {
+  const nets = require('os').networkInterfaces();
+  for (const name of Object.keys(nets)) {
+    // Skip virtual adapters (VMware, Hyper-V, WARP) — prefer real Wi-Fi/Ethernet.
+    if (/vmware|virtual|vethernet|warp|loopback/i.test(name)) continue;
+    for (const net of nets[name] || []) {
+      if (net.family === 'IPv4' && !net.internal) return net.address;
+    }
+  }
+  return null;
+}
+
+// Bind to 0.0.0.0 so other devices on the same Wi-Fi can reach it.
+app.listen(config.port, '0.0.0.0', () => {
+  const ip = lanIPv4();
   console.log(`\n  Serendib Digital Bank portal running:`);
-  console.log(`  →  http://localhost:${config.port}\n`);
+  console.log(`  →  On this PC:   http://localhost:${config.port}`);
+  if (ip) {
+    console.log(`  →  On your phone (same Wi-Fi):  http://${ip}:${config.port}`);
+  }
+  console.log('');
 });
