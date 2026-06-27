@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Serendib Digital Bank</title>
+<style>
+  :root {
+    --bg: #0a1124;
+    --bg2: #111c3a;
+    --card: #16213f;
+    --accent: #1fb286;
+    --accent2: #2dd4a7;
+    --text: #eaf0ff;
+    --muted: #8ea0c4;
+    --border: #243353;
+    --danger: #ff6b6b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #16264f 0%, var(--bg) 55%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .wrap { width: 100%; max-width: 440px; }
+  .brand {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .brand .logo {
+    width: 64px; height: 64px;
+    margin: 0 auto 14px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 700; color: #03261c;
+  }
+  .brand h1 { font-size: 22px; font-weight: 600; letter-spacing: .3px; }
+  .brand p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 26px;
+  }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  input {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 16px;
+    outline: none;
+    transition: border .15s;
+  }
+  input:focus { border-color: var(--accent); }
+  .btn {
+    width: 100%;
+    margin-top: 18px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #03261c;
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .1s, opacity .15s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+  .btn.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .hidden { display: none !important; }
+  .msg { margin-top: 16px; font-size: 13px; text-align: center; min-height: 18px; }
+  .msg.error { color: var(--danger); }
+  .msg.ok { color: var(--accent2); }
+
+  .balance-card {
+    background: linear-gradient(135deg, #15314f, #103a31);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .balance-card .lbl { font-size: 13px; color: var(--muted); }
+  .balance-card .amt { font-size: 34px; font-weight: 700; margin: 6px 0 14px; }
+  .balance-row { display: flex; gap: 16px; }
+  .balance-row .b { flex: 1; }
+  .balance-row .b .s { font-size: 12px; color: var(--muted); }
+  .balance-row .b .v { font-size: 16px; font-weight: 600; margin-top: 2px; }
+
+  .section-title { font-size: 14px; color: var(--muted); margin: 4px 0 14px; }
+  .field { margin-bottom: 14px; }
+
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #03261c;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: -3px;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .foot {
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 22px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">S</div>
+      <h1>Serendib Digital Bank</h1>
+      <p>Your personal banking portal</p>
+    </div>
+
+    <!-- Passcode screen -->
+    <div class="card" id="lockScreen">
+      <label for="passcode">Enter passcode</label>
+      <input id="passcode" type="password" inputmode="numeric" placeholder="••••" autofocus />
+      <div style="display:flex; align-items:center; gap:10px; margin-top:14px;">
+        <label style="margin:0; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);">
+          <input type="checkbox" id="headlessToggle" style="width:auto; accent-color:var(--accent);" />
+          Hide browser window
+        </label>
+      </div>
+      <button class="btn" id="unlockBtn">Continue</button>
+      <div class="msg" id="lockMsg"></div>
+    </div>
+
+    <!-- Dashboard screen -->
+    <div class="card hidden" id="dashScreen">
+      <div class="balance-card">
+        <div class="lbl">Available funds</div>
+        <div class="amt" id="availFunds">—</div>
+        <div class="balance-row">
+          <div class="b">
+            <div class="s">Current funds</div>
+            <div class="v" id="currentFunds">—</div>
+          </div>
+          <div class="b">
+            <div class="s">Overdraft</div>
+            <div class="v" id="overdraft">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Send money to ComBank account</div>
+      <div class="field">
+        <label for="toAccount">Recipient account number</label>
+        <input id="toAccount" type="text" placeholder="e.g. 8012153110" />
+      </div>
+      <div class="field">
+        <label for="amount">Amount (LKR)</label>
+        <input id="amount" type="number" min="1" step="0.01" placeholder="0.00" />
+      </div>
+      <div class="field">
+        <label for="senderDesc">Sender description</label>
+        <input id="senderDesc" type="text" placeholder="e.g. Serendib Transfer" maxlength="35" />
+      </div>
+      <div class="field">
+        <label for="benefDesc">Beneficiary description</label>
+        <input id="benefDesc" type="text" placeholder="e.g. Payment for..." maxlength="105" />
+      </div>
+      <button class="btn" id="sendBtn">Send money</button>
+      <button class="btn secondary" id="refreshBtn">Refresh balance</button>
+      <div class="msg" id="dashMsg"></div>
+
+      <!-- Transaction OTP confirmation (shown after Send) -->
+      <div id="otpSection" class="hidden" style="margin-top:20px; padding-top:18px; border-top: 1px solid var(--border);">
+        <div class="section-title">Confirm transaction</div>
+        <div class="field">
+          <label for="txnOtp">Transaction OTP (SMS)</label>
+          <input id="txnOtp" type="text" inputmode="numeric" placeholder="Enter OTP from SMS" maxlength="10" />
+        </div>
+        <button class="btn" id="confirmBtn">Confirm Transfer</button>
+        <div class="msg" id="otpMsg"></div>
+      </div>
+    </div>
+
+    <div class="foot">
+      Powered by<br />
+      Bookiya Developers &copy; 2026<br />
+    </div>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  function setMsg(el, text, kind) {
+    el.textContent = text || '';
+    el.className = 'msg' + (kind ? ' ' + kind : '');
+  }
+
+  function showBalance(b) {
+    $('availFunds').textContent = b.availableFunds || '—';
+    $('currentFunds').textContent = b.currentFunds || '—';
+    $('overdraft').textContent = b.availableOverdraft || '—';
+  }
+
+  async function unlock() {
+    const passcode = $('passcode').value.trim();
+    if (!passcode) return;
+    $('unlockBtn').disabled = true;
+    $('unlockBtn').innerHTML = '<span class="spinner"></span> Logging in to your bank…';
+    setMsg($('lockMsg'), 'This can take a moment while we sign in and read the OTP.', '');
+    try {
+      const r = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode, headless: $('headlessToggle').checked }),
+      });
+      const data = await r.json();
+      if (!data.ok) throw new Error(data.error || 'Login failed');
+      showBalance(data.balance);
+      $('lockScreen').classList.add('hidden');
+      $('dashScreen').classList.remove('hidden');
+    } catch (e) {
+      setMsg($('lockMsg'), e.message, 'error');
+    } finally {
+      $('unlockBtn').disabled = false;
+      $('unlockBtn').textContent = 'Continue';
+    }
+  }
+
+  async function refresh() {
+    setMsg($('dashMsg'), 'Refreshing…', '');
+    try {
+      const r = await fetch('/api/balance');
+      const data = await r.json();
+      if (!data.ok) throw new Error(data.error || 'Failed');
+      showBalance(data.balance);
+      setMsg($('dashMsg'), 'Balance updated.', 'ok');
+    } catch (e) {
+      setMsg($('dashMsg'), e.message, 'error');
+    }
+  }
+
+  async function send() {
+    const toAccount = $('toAccount').value.trim();
+    const amount = $('amount').value.trim();
+    const senderDescription = $('senderDesc').value.trim();
+    const beneficiaryDescription = $('benefDesc').value.trim();
+    if (!toAccount) return setMsg($('dashMsg'), 'Enter the recipient account number.', 'error');
+    if (!amount) return setMsg($('dashMsg'), 'Enter an amount.', 'error');
+    $('sendBtn').disabled = true;
+    $('sendBtn').innerHTML = '<span class="spinner"></span> Sending…';
+    setMsg($('dashMsg'), '', '');
+    try {
+      const r = await fetch('/api/transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ toAccount, amount, senderDescription, beneficiaryDescription }),
+      });
+      const data = await r.json();
+      if (!data.ok) throw new Error(data.error || 'Transfer failed');
+      setMsg($('dashMsg'), data.message || 'Transfer submitted.', 'ok');
+      $('otpSection').classList.remove('hidden');
+      $('txnOtp').focus();
+    } catch (e) {
+      setMsg($('dashMsg'), e.message, 'error');
+    } finally {
+      $('sendBtn').disabled = false;
+      $('sendBtn').textContent = 'Send money';
+    }
+  }
+
+  async function confirmTxn() {
+    const otp = $('txnOtp').value.trim();
+    if (!otp) return setMsg($('otpMsg'), 'Enter the OTP.', 'error');
+    $('confirmBtn').disabled = true;
+    $('confirmBtn').innerHTML = '<span class="spinner"></span> Confirming…';
+    setMsg($('otpMsg'), '', '');
+    try {
+      const r = await fetch('/api/confirm-transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ otp }),
+      });
+      const data = await r.json();
+      if (!data.ok) throw new Error(data.error || 'Confirm failed');
+      setMsg($('otpMsg'), data.message || 'Transfer confirmed!', 'ok');
+      $('otpSection').classList.add('hidden');
+      $('txnOtp').value = '';
+      $('toAccount').value = '';
+      $('amount').value = '';
+      $('senderDesc').value = '';
+      $('benefDesc').value = '';
+      refresh();
+    } catch (e) {
+      setMsg($('otpMsg'), e.message, 'error');
+    } finally {
+      $('confirmBtn').disabled = false;
+      $('confirmBtn').textContent = 'Confirm Transfer';
+    }
+  }
+
+  $('unlockBtn').addEventListener('click', unlock);
+  $('passcode').addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
+  $('refreshBtn').addEventListener('click', refresh);
+  $('sendBtn').addEventListener('click', send);
+  $('confirmBtn').addEventListener('click', confirmTxn);
+  $('txnOtp').addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmTxn(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# Secrets — never commit
+.env
+
+# Dependencies
+node_modules/
+
+# Debug screenshots from the login automation
+debug-*.png
+
+# Saved account data
+data/
+*.transactions.json
