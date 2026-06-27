@@ -2,7 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0a1124" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Serendib" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="icon" href="/icon-192.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="/icon-192.svg" />
 <title>Serendib Digital Bank</title>
 <style>
   :root {
@@ -15,42 +22,144 @@
     --muted: #8ea0c4;
     --border: #243353;
     --danger: #ff6b6b;
+    --safe: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
   body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: radial-gradient(1200px 600px at 50% -10%, #16264f 0%, var(--bg) 55%);
+    font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
   }
-  .wrap { width: 100%; max-width: 440px; }
-  .brand {
-    text-align: center;
-    margin-bottom: 28px;
+
+  /* ── App shell ── */
+  .app {
+    display: flex; flex-direction: column;
+    height: 100vh; height: 100dvh;
   }
-  .brand .logo {
-    width: 64px; height: 64px;
-    margin: 0 auto 14px;
-    border-radius: 18px;
+  .app-body {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Status bar spacer (notched phones) ── */
+  .status-bar { height: env(safe-area-inset-top, 0px); background: var(--bg); flex: none; }
+
+  /* ── Header ── */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; flex: none;
+    background: var(--bg);
+  }
+  .header .logo-sm {
+    width: 34px; height: 34px; border-radius: 10px;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
     display: flex; align-items: center; justify-content: center;
-    font-size: 30px; font-weight: 700; color: #03261c;
+    font-size: 17px; font-weight: 700; color: #03261c;
   }
-  .brand h1 { font-size: 22px; font-weight: 600; letter-spacing: .3px; }
-  .brand p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .header .title { font-size: 17px; font-weight: 600; }
+  .header .refresh-ico {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--card); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--muted); font-size: 18px;
+    transition: background .15s;
+  }
+  .header .refresh-ico:active { background: var(--bg2); }
+  .header .refresh-ico.spinning svg { animation: spin .8s linear infinite; }
 
+  /* ── Bottom tabs ── */
+  .tab-bar {
+    display: flex; flex: none;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    padding-bottom: var(--safe);
+  }
+  .tab-bar button {
+    flex: 1; background: none; border: none; color: var(--muted);
+    padding: 10px 0 8px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10px; font-weight: 500;
+    transition: color .15s;
+  }
+  .tab-bar button.active { color: var(--accent2); }
+  .tab-bar button svg { width: 22px; height: 22px; }
+
+  /* ── Page views ── */
+  .page { display: none; padding: 0 20px 24px; }
+  .page.active { display: block; }
+
+  /* ── Lock screen ── */
+  .lock-page {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 28px; text-align: center;
+    min-height: 100%;
+  }
+  .lock-page .logo-lg {
+    width: 80px; height: 80px; border-radius: 22px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; font-weight: 700; color: #03261c;
+    margin-bottom: 16px;
+  }
+  .lock-page h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .lock-page .sub { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+  .lock-page .card-inner { width: 100%; max-width: 360px; }
+
+  /* ── Cards ── */
   .card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 28px 26px;
+    border-radius: 18px;
+    padding: 20px;
   }
-  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-  input {
+  .card + .card { margin-top: 14px; }
+
+  /* ── Balance hero ── */
+  .bal-hero {
+    background: linear-gradient(135deg, #122e48 0%, #0f3a30 100%);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px 20px;
+    margin-bottom: 16px;
+  }
+  .bal-hero .lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .bal-hero .big { font-size: 32px; font-weight: 800; margin: 6px 0 16px; letter-spacing: -.5px; }
+  .bal-row { display: flex; gap: 12px; }
+  .bal-row .pill {
+    flex: 1; background: rgba(255,255,255,.06); border-radius: 12px; padding: 10px 12px;
+  }
+  .bal-row .pill .s { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .3px; }
+  .bal-row .pill .v { font-size: 15px; font-weight: 700; margin-top: 3px; }
+
+  /* ── Quick actions ── */
+  .quick-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .quick-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px;
+    cursor: pointer; color: var(--text);
+    font-size: 13px; font-weight: 600;
+    transition: background .15s;
+  }
+  .quick-btn:active { background: var(--bg2); }
+  .quick-btn .qic {
+    width: 36px; height: 36px; flex: none;
+    border-radius: 10px; display: flex;
+    align-items: center; justify-content: center; font-size: 16px;
+  }
+  .quick-btn .qic.green { background: rgba(45,212,167,.15); color: var(--accent2); }
+  .quick-btn .qic.blue { background: rgba(96,165,250,.15); color: #60a5fa; }
+
+  /* ── Forms ── */
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .3px; }
+  input[type="text"], input[type="password"], input[type="number"] {
     width: 100%;
     background: var(--bg2);
     border: 1px solid var(--border);
@@ -62,49 +171,81 @@
     transition: border .15s;
   }
   input:focus { border-color: var(--accent); }
+  .field { margin-bottom: 14px; }
+
   .btn {
-    width: 100%;
-    margin-top: 18px;
+    width: 100%; border: none; border-radius: 14px;
+    padding: 15px; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: transform .1s, opacity .15s;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
     color: #03261c;
-    border: none;
-    border-radius: 12px;
-    padding: 15px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform .1s, opacity .15s;
   }
-  .btn:hover { transform: translateY(-1px); }
-  .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+  .btn:active { transform: scale(.98); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
   .btn.secondary {
-    background: transparent;
-    color: var(--text);
+    background: var(--bg2); color: var(--text);
     border: 1px solid var(--border);
   }
+  .btn.secondary:active { background: var(--card); }
+  .btn + .btn { margin-top: 10px; }
 
-  .hidden { display: none !important; }
-  .msg { margin-top: 16px; font-size: 13px; text-align: center; min-height: 18px; }
+  .msg { margin-top: 14px; font-size: 13px; text-align: center; min-height: 18px; }
   .msg.error { color: var(--danger); }
   .msg.ok { color: var(--accent2); }
 
-  .balance-card {
-    background: linear-gradient(135deg, #15314f, #103a31);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 24px;
-    margin-bottom: 20px;
+  .toggle-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
   }
-  .balance-card .lbl { font-size: 13px; color: var(--muted); }
-  .balance-card .amt { font-size: 34px; font-weight: 700; margin: 6px 0 14px; }
-  .balance-row { display: flex; gap: 16px; }
-  .balance-row .b { flex: 1; }
-  .balance-row .b .s { font-size: 12px; color: var(--muted); }
-  .balance-row .b .v { font-size: 16px; font-weight: 600; margin-top: 2px; }
+  .toggle-row label { margin: 0; text-transform: none; letter-spacing: 0; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .toggle-row input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 
-  .section-title { font-size: 14px; color: var(--muted); margin: 4px 0 14px; }
-  .field { margin-bottom: 14px; }
+  .section-title {
+    font-size: 13px; color: var(--muted); margin-bottom: 14px;
+    text-transform: uppercase; letter-spacing: .4px; font-weight: 600;
+  }
 
+  .divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 18px 0;
+  }
+
+  .hidden { display: none !important; }
+
+  /* ── Transaction rows ── */
+  .txn-list { display: flex; flex-direction: column; gap: 2px; }
+  .txn {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .txn:last-child { border-bottom: none; }
+  .txn .ic {
+    width: 38px; height: 38px; flex: none;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+  }
+  .txn.credit .ic { background: rgba(45,212,167,.12); color: var(--accent2); }
+  .txn.debit  .ic { background: rgba(255,107,107,.12); color: var(--danger); }
+  .txn .body { flex: 1; min-width: 0; }
+  .txn .desc {
+    font-size: 14px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .txn .meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .txn .right { text-align: right; flex: none; }
+  .txn .amt2 { font-size: 14px; font-weight: 700; white-space: nowrap; }
+  .txn.credit .amt2 { color: var(--accent2); }
+  .txn.debit  .amt2 { color: var(--danger); }
+  .txn .bal { font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; }
+
+  .empty-state {
+    text-align: center; padding: 40px 20px; color: var(--muted);
+  }
+  .empty-state .em-icon { font-size: 40px; margin-bottom: 12px; opacity: .4; }
+  .empty-state .em-text { font-size: 14px; }
+
+  /* ── Spinner ── */
   .spinner {
     width: 18px; height: 18px;
     border: 2px solid rgba(255,255,255,.3);
@@ -116,291 +257,381 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .foot {
-    text-align: center;
-    color: var(--muted);
-    font-size: 11px;
-    margin-top: 22px;
-    line-height: 1.6;
+  .foot { text-align: center; color: var(--muted); font-size: 11px; padding: 20px 0 8px; line-height: 1.6; }
+
+  /* ── OTP card highlight ── */
+  .otp-card {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 4px 24px rgba(31,178,134,.15);
   }
 
-  /* Transactions list */
-  .txn-list { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
-  .txn {
-    display: flex; align-items: flex-start; gap: 12px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 14px;
+  /* Desktop: center the app in a phone frame */
+  @media (min-width: 600px) {
+    body { display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at 50% 0%, #16264f, var(--bg) 70%);
+    }
+    .app {
+      width: 400px; max-height: 780px;
+      border-radius: 28px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,.5);
+    }
   }
-  .txn .ic {
-    width: 30px; height: 30px; flex: none;
-    border-radius: 9px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: 700;
-  }
-  .txn.credit .ic { background: rgba(45,212,167,.15); color: var(--accent2); }
-  .txn.debit  .ic { background: rgba(255,107,107,.15); color: var(--danger); }
-  .txn .body { flex: 1; min-width: 0; }
-  .txn .desc { font-size: 14px; font-weight: 600; }
-  .txn .meta { font-size: 11px; color: var(--muted); margin-top: 3px; word-break: break-word; }
-  .txn .right { text-align: right; flex: none; }
-  .txn .amt2 { font-size: 14px; font-weight: 700; white-space: nowrap; }
-  .txn.credit .amt2 { color: var(--accent2); }
-  .txn.debit  .amt2 { color: var(--danger); }
-  .txn .bal { font-size: 11px; color: var(--muted); margin-top: 3px; white-space: nowrap; }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="brand">
-      <div class="logo">S</div>
-      <h1>Serendib Digital Bank</h1>
-      <p>Your personal banking portal</p>
-    </div>
+<div class="app">
+  <div class="status-bar"></div>
 
-    <!-- Passcode screen -->
-    <div class="card" id="lockScreen">
-      <label for="passcode">Enter passcode</label>
-      <input id="passcode" type="password" inputmode="numeric" placeholder="••••" autofocus />
-      <div style="display:flex; align-items:center; gap:10px; margin-top:14px;">
-        <label style="margin:0; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);">
-          <input type="checkbox" id="headlessToggle" style="width:auto; accent-color:var(--accent);" />
-          Hide browser window
-        </label>
+  <!-- ══ Lock screen ══ -->
+  <div class="app-body" id="lockView">
+    <div class="lock-page">
+      <div class="logo-lg">S</div>
+      <h1>Serendib</h1>
+      <p class="sub">Digital Banking Portal</p>
+      <div class="card-inner">
+        <div class="card">
+          <div class="field">
+            <label for="passcode">Passcode</label>
+            <input id="passcode" type="password" inputmode="numeric" placeholder="Enter passcode" autofocus />
+          </div>
+          <div class="toggle-row">
+            <label>
+              <input type="checkbox" id="headlessToggle" />
+              Hide browser window
+            </label>
+          </div>
+          <button class="btn" id="unlockBtn">Sign In</button>
+          <div class="msg" id="lockMsg"></div>
+        </div>
       </div>
-      <button class="btn" id="unlockBtn">Continue</button>
-      <div class="msg" id="lockMsg"></div>
     </div>
+  </div>
 
-    <!-- Dashboard screen -->
-    <div class="card hidden" id="dashScreen">
-      <div class="balance-card">
-        <div class="lbl">Available funds</div>
-        <div class="amt" id="availFunds">—</div>
-        <div class="balance-row">
-          <div class="b">
-            <div class="s">Current funds</div>
+  <!-- ══ Main app (hidden until login) ══ -->
+  <div class="header hidden" id="appHeader">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="logo-sm">S</div>
+      <span class="title">Serendib</span>
+    </div>
+    <div class="refresh-ico" id="refreshIco" title="Refresh balance">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+    </div>
+  </div>
+
+  <div class="app-body hidden" id="mainView">
+    <!-- ── Home tab ── -->
+    <div class="page active" id="pageHome">
+      <div class="bal-hero">
+        <div class="lbl">Available balance</div>
+        <div class="big" id="availFunds">—</div>
+        <div class="bal-row">
+          <div class="pill">
+            <div class="s">Current</div>
             <div class="v" id="currentFunds">—</div>
           </div>
-          <div class="b">
+          <div class="pill">
             <div class="s">Overdraft</div>
             <div class="v" id="overdraft">—</div>
           </div>
         </div>
       </div>
 
-      <div class="section-title">Send money to ComBank account</div>
-      <div class="field">
-        <label for="toAccount">Recipient account number</label>
-        <input id="toAccount" type="text" placeholder="e.g. 8012153110" />
+      <div class="quick-row">
+        <div class="quick-btn" id="goTransfer">
+          <div class="qic green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </div>
+          Transfer
+        </div>
+        <div class="quick-btn" id="goHistory">
+          <div class="qic blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          History
+        </div>
       </div>
-      <div class="field">
-        <label for="amount">Amount (LKR)</label>
-        <input id="amount" type="number" min="1" step="0.01" placeholder="0.00" />
-      </div>
-      <div class="field">
-        <label for="senderDesc">Sender description</label>
-        <input id="senderDesc" type="text" placeholder="e.g. Serendib Transfer" maxlength="35" />
-      </div>
-      <div class="field">
-        <label for="benefDesc">Beneficiary description</label>
-        <input id="benefDesc" type="text" placeholder="e.g. Payment for..." maxlength="105" />
-      </div>
-      <button class="btn" id="sendBtn">Send money</button>
-      <button class="btn secondary" id="refreshBtn">Refresh balance</button>
-      <div class="msg" id="dashMsg"></div>
 
-      <!-- Transaction OTP confirmation (shown after Send) -->
-      <div id="otpSection" class="hidden" style="margin-top:20px; padding-top:18px; border-top: 1px solid var(--border);">
-        <div class="section-title">Confirm transaction</div>
+      <div class="card">
+        <div class="section-title">Recent Transactions</div>
+        <div id="recentTxns">
+          <div class="empty-state">
+            <div class="em-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.4"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            </div>
+            <div class="em-text">Tap History to load transactions</div>
+          </div>
+        </div>
+      </div>
+      <div class="foot">Bookiya Developers &copy; 2026</div>
+    </div>
+
+    <!-- ── Transfer tab ── -->
+    <div class="page" id="pageTransfer">
+      <div class="card">
+        <div class="section-title">Send Money</div>
+        <div class="field">
+          <label for="toAccount">Recipient account</label>
+          <input id="toAccount" type="text" placeholder="e.g. 8012153110" />
+        </div>
+        <div class="field">
+          <label for="amount">Amount (LKR)</label>
+          <input id="amount" type="number" min="1" step="0.01" placeholder="0.00" />
+        </div>
+        <div class="field">
+          <label for="senderDesc">Sender note</label>
+          <input id="senderDesc" type="text" placeholder="e.g. Serendib Transfer" maxlength="35" />
+        </div>
+        <div class="field">
+          <label for="benefDesc">Beneficiary note</label>
+          <input id="benefDesc" type="text" placeholder="e.g. Payment for..." maxlength="105" />
+        </div>
+        <button class="btn" id="sendBtn">Send Money</button>
+        <div class="msg" id="dashMsg"></div>
+      </div>
+
+      <div class="card otp-card hidden" id="otpSection">
+        <div class="section-title">Confirm with OTP</div>
         <div class="field">
           <label for="txnOtp">Transaction OTP (SMS)</label>
-          <input id="txnOtp" type="text" inputmode="numeric" placeholder="Enter OTP from SMS" maxlength="10" />
+          <input id="txnOtp" type="text" inputmode="numeric" placeholder="Enter OTP" maxlength="10" />
         </div>
         <button class="btn" id="confirmBtn">Confirm Transfer</button>
         <div class="msg" id="otpMsg"></div>
       </div>
-
-      <!-- Transaction history -->
-      <div style="margin-top:22px; padding-top:18px; border-top: 1px solid var(--border);">
-        <div class="section-title">Transaction history</div>
-        <button class="btn secondary" id="txnBtn">View transactions</button>
-        <div class="msg" id="txnMsg"></div>
-        <div class="txn-list" id="txnList"></div>
-      </div>
     </div>
 
-    <div class="foot">
-      Powered by<br />
-      Bookiya Developers &copy; 2026<br />
+    <!-- ── History tab ── -->
+    <div class="page" id="pageHistory">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div class="section-title" style="margin-bottom:0;">Transactions</div>
+          <button class="btn secondary" id="txnBtn" style="width:auto;padding:8px 16px;font-size:12px;">Load</button>
+        </div>
+        <div class="msg" id="txnMsg"></div>
+        <div id="txnList">
+          <div class="empty-state">
+            <div class="em-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div class="em-text">Tap Load to fetch your transaction history</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- ── Tab bar ── -->
+  <div class="tab-bar hidden" id="tabBar">
+    <button class="active" data-tab="pageHome">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </button>
+    <button data-tab="pageTransfer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      Transfer
+    </button>
+    <button data-tab="pageHistory">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      History
+    </button>
+  </div>
+</div>
+
 <script>
-  const $ = (id) => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 
-  function setMsg(el, text, kind) {
-    el.textContent = text || '';
-    el.className = 'msg' + (kind ? ' ' + kind : '');
+// ── Tab navigation ──
+function switchTab(tabId) {
+  document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
+  document.querySelectorAll('.tab-bar button').forEach((b) => b.classList.remove('active'));
+  $(tabId).classList.add('active');
+  document.querySelector(`.tab-bar button[data-tab="${tabId}"]`).classList.add('active');
+}
+document.querySelectorAll('.tab-bar button').forEach((b) => {
+  b.addEventListener('click', () => switchTab(b.dataset.tab));
+});
+$('goTransfer').addEventListener('click', () => switchTab('pageTransfer'));
+$('goHistory').addEventListener('click', () => { switchTab('pageHistory'); loadTransactions(); });
+
+// ── Helpers ──
+function setMsg(el, text, kind) {
+  el.textContent = text || '';
+  el.className = 'msg' + (kind ? ' ' + kind : '');
+}
+function showBalance(b) {
+  $('availFunds').textContent = b.availableFunds || '—';
+  $('currentFunds').textContent = b.currentFunds || '—';
+  $('overdraft').textContent = b.availableOverdraft || '—';
+}
+
+// ── Login ──
+async function unlock() {
+  const passcode = $('passcode').value.trim();
+  if (!passcode) return;
+  $('unlockBtn').disabled = true;
+  $('unlockBtn').innerHTML = '<span class="spinner"></span> Signing in…';
+  setMsg($('lockMsg'), 'Connecting to your bank — this may take a moment.', '');
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode, headless: $('headlessToggle').checked }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'Login failed');
+    showBalance(data.balance);
+    $('lockView').classList.add('hidden');
+    $('appHeader').classList.remove('hidden');
+    $('mainView').classList.remove('hidden');
+    $('tabBar').classList.remove('hidden');
+  } catch (e) {
+    setMsg($('lockMsg'), e.message, 'error');
+  } finally {
+    $('unlockBtn').disabled = false;
+    $('unlockBtn').textContent = 'Sign In';
   }
+}
+$('unlockBtn').addEventListener('click', unlock);
+$('passcode').addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
 
-  function showBalance(b) {
-    $('availFunds').textContent = b.availableFunds || '—';
-    $('currentFunds').textContent = b.currentFunds || '—';
-    $('overdraft').textContent = b.availableOverdraft || '—';
+// ── Refresh ──
+async function refresh() {
+  const ico = $('refreshIco');
+  ico.classList.add('spinning');
+  try {
+    const r = await fetch('/api/balance');
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'Failed');
+    showBalance(data.balance);
+  } catch (e) {
+    setMsg($('dashMsg'), e.message, 'error');
+  } finally {
+    ico.classList.remove('spinning');
   }
+}
+$('refreshIco').addEventListener('click', refresh);
 
-  async function unlock() {
-    const passcode = $('passcode').value.trim();
-    if (!passcode) return;
-    $('unlockBtn').disabled = true;
-    $('unlockBtn').innerHTML = '<span class="spinner"></span> Logging in to your bank…';
-    setMsg($('lockMsg'), 'This can take a moment while we sign in and read the OTP.', '');
-    try {
-      const r = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passcode, headless: $('headlessToggle').checked }),
-      });
-      const data = await r.json();
-      if (!data.ok) throw new Error(data.error || 'Login failed');
-      showBalance(data.balance);
-      $('lockScreen').classList.add('hidden');
-      $('dashScreen').classList.remove('hidden');
-    } catch (e) {
-      setMsg($('lockMsg'), e.message, 'error');
-    } finally {
-      $('unlockBtn').disabled = false;
-      $('unlockBtn').textContent = 'Continue';
-    }
+// ── Transfer ──
+async function send() {
+  const toAccount = $('toAccount').value.trim();
+  const amount = $('amount').value.trim();
+  const senderDescription = $('senderDesc').value.trim();
+  const beneficiaryDescription = $('benefDesc').value.trim();
+  if (!toAccount) return setMsg($('dashMsg'), 'Enter the recipient account number.', 'error');
+  if (!amount) return setMsg($('dashMsg'), 'Enter an amount.', 'error');
+  $('sendBtn').disabled = true;
+  $('sendBtn').innerHTML = '<span class="spinner"></span> Sending…';
+  setMsg($('dashMsg'), '', '');
+  try {
+    const r = await fetch('/api/transfer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ toAccount, amount, senderDescription, beneficiaryDescription }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'Transfer failed');
+    setMsg($('dashMsg'), data.message || 'Transfer submitted.', 'ok');
+    $('otpSection').classList.remove('hidden');
+    $('txnOtp').focus();
+  } catch (e) {
+    setMsg($('dashMsg'), e.message, 'error');
+  } finally {
+    $('sendBtn').disabled = false;
+    $('sendBtn').textContent = 'Send Money';
   }
+}
+$('sendBtn').addEventListener('click', send);
 
-  async function refresh() {
-    setMsg($('dashMsg'), 'Refreshing…', '');
-    try {
-      const r = await fetch('/api/balance');
-      const data = await r.json();
-      if (!data.ok) throw new Error(data.error || 'Failed');
-      showBalance(data.balance);
-      setMsg($('dashMsg'), 'Balance updated.', 'ok');
-    } catch (e) {
-      setMsg($('dashMsg'), e.message, 'error');
-    }
+// ── Confirm OTP ──
+async function confirmTxn() {
+  const otp = $('txnOtp').value.trim();
+  if (!otp) return setMsg($('otpMsg'), 'Enter the OTP.', 'error');
+  $('confirmBtn').disabled = true;
+  $('confirmBtn').innerHTML = '<span class="spinner"></span> Confirming…';
+  setMsg($('otpMsg'), '', '');
+  try {
+    const r = await fetch('/api/confirm-transfer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ otp }),
+    });
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'Confirm failed');
+    setMsg($('otpMsg'), data.message || 'Transfer confirmed!', 'ok');
+    $('otpSection').classList.add('hidden');
+    $('txnOtp').value = '';
+    $('toAccount').value = '';
+    $('amount').value = '';
+    $('senderDesc').value = '';
+    $('benefDesc').value = '';
+    refresh();
+  } catch (e) {
+    setMsg($('otpMsg'), e.message, 'error');
+  } finally {
+    $('confirmBtn').disabled = false;
+    $('confirmBtn').textContent = 'Confirm Transfer';
   }
+}
+$('confirmBtn').addEventListener('click', confirmTxn);
+$('txnOtp').addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmTxn(); });
 
-  async function send() {
-    const toAccount = $('toAccount').value.trim();
-    const amount = $('amount').value.trim();
-    const senderDescription = $('senderDesc').value.trim();
-    const beneficiaryDescription = $('benefDesc').value.trim();
-    if (!toAccount) return setMsg($('dashMsg'), 'Enter the recipient account number.', 'error');
-    if (!amount) return setMsg($('dashMsg'), 'Enter an amount.', 'error');
-    $('sendBtn').disabled = true;
-    $('sendBtn').innerHTML = '<span class="spinner"></span> Sending…';
-    setMsg($('dashMsg'), '', '');
-    try {
-      const r = await fetch('/api/transfer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ toAccount, amount, senderDescription, beneficiaryDescription }),
-      });
-      const data = await r.json();
-      if (!data.ok) throw new Error(data.error || 'Transfer failed');
-      setMsg($('dashMsg'), data.message || 'Transfer submitted.', 'ok');
-      $('otpSection').classList.remove('hidden');
-      $('txnOtp').focus();
-    } catch (e) {
-      setMsg($('dashMsg'), e.message, 'error');
-    } finally {
-      $('sendBtn').disabled = false;
-      $('sendBtn').textContent = 'Send money';
-    }
+// ── Transactions ──
+let txnCache = null;
+
+function buildTxnRow(t) {
+  const row = document.createElement('div');
+  row.className = 'txn ' + (t.type === 'credit' ? 'credit' : 'debit');
+  const sign = t.type === 'credit' ? '+' : '-';
+  const arrow = t.type === 'credit' ? '↓' : '↑';
+  row.innerHTML =
+    '<div class="ic">' + arrow + '</div>' +
+    '<div class="body"><div class="desc"></div><div class="meta"></div></div>' +
+    '<div class="right"><div class="amt2"></div><div class="bal"></div></div>';
+  row.querySelector('.desc').textContent = t.description || '—';
+  row.querySelector('.meta').textContent = t.date || '';
+  row.querySelector('.amt2').textContent = sign + ' ' + (t.amount || '');
+  row.querySelector('.bal').textContent = t.balance ? 'Bal ' + t.balance : '';
+  return row;
+}
+
+function renderTransactions(list, target, limit) {
+  const wrap = typeof target === 'string' ? $(target) : target;
+  wrap.innerHTML = '';
+  if (!list || !list.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="em-text">No transactions found.</div></div>';
+    return;
   }
+  const items = limit ? list.slice(0, limit) : list;
+  for (const t of items) wrap.appendChild(buildTxnRow(t));
+}
 
-  async function confirmTxn() {
-    const otp = $('txnOtp').value.trim();
-    if (!otp) return setMsg($('otpMsg'), 'Enter the OTP.', 'error');
-    $('confirmBtn').disabled = true;
-    $('confirmBtn').innerHTML = '<span class="spinner"></span> Confirming…';
-    setMsg($('otpMsg'), '', '');
-    try {
-      const r = await fetch('/api/confirm-transfer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp }),
-      });
-      const data = await r.json();
-      if (!data.ok) throw new Error(data.error || 'Confirm failed');
-      setMsg($('otpMsg'), data.message || 'Transfer confirmed!', 'ok');
-      $('otpSection').classList.add('hidden');
-      $('txnOtp').value = '';
-      $('toAccount').value = '';
-      $('amount').value = '';
-      $('senderDesc').value = '';
-      $('benefDesc').value = '';
-      refresh();
-    } catch (e) {
-      setMsg($('otpMsg'), e.message, 'error');
-    } finally {
-      $('confirmBtn').disabled = false;
-      $('confirmBtn').textContent = 'Confirm Transfer';
-    }
+async function loadTransactions() {
+  $('txnBtn').disabled = true;
+  $('txnBtn').innerHTML = '<span class="spinner"></span>';
+  setMsg($('txnMsg'), '', '');
+  try {
+    const r = await fetch('/api/transactions');
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || 'Failed to load transactions');
+    txnCache = data.transactions;
+    renderTransactions(txnCache, 'txnList');
+    renderTransactions(txnCache, 'recentTxns', 5);
+    setMsg($('txnMsg'), txnCache.length + ' transactions loaded.', 'ok');
+  } catch (e) {
+    setMsg($('txnMsg'), e.message, 'error');
+  } finally {
+    $('txnBtn').disabled = false;
+    $('txnBtn').textContent = 'Refresh';
   }
+}
+$('txnBtn').addEventListener('click', loadTransactions);
 
-  function renderTransactions(list) {
-    const wrap = $('txnList');
-    wrap.innerHTML = '';
-    if (!list || !list.length) {
-      setMsg($('txnMsg'), 'No transactions found.', '');
-      return;
-    }
-    for (const t of list) {
-      const row = document.createElement('div');
-      row.className = 'txn ' + (t.type === 'credit' ? 'credit' : 'debit');
-      const sign = t.type === 'credit' ? '+' : '−';
-      row.innerHTML =
-        '<div class="ic">' + (t.type === 'credit' ? '↓' : '↑') + '</div>' +
-        '<div class="body">' +
-          '<div class="desc"></div>' +
-          '<div class="meta"></div>' +
-        '</div>' +
-        '<div class="right">' +
-          '<div class="amt2">' + sign + ' ' + (t.amount || '') + '</div>' +
-          '<div class="bal"></div>' +
-        '</div>';
-      row.querySelector('.desc').textContent = t.description || '—';
-      row.querySelector('.meta').textContent = [t.date, t.extra].filter(Boolean).join(' · ');
-      row.querySelector('.bal').textContent = t.balance ? 'Bal ' + t.balance : '';
-      wrap.appendChild(row);
-    }
-    setMsg($('txnMsg'), 'Showing ' + list.length + ' transactions.', 'ok');
-  }
-
-  async function loadTransactions() {
-    $('txnBtn').disabled = true;
-    $('txnBtn').innerHTML = '<span class="spinner"></span> Loading…';
-    setMsg($('txnMsg'), '', '');
-    try {
-      const r = await fetch('/api/transactions');
-      const data = await r.json();
-      if (!data.ok) throw new Error(data.error || 'Failed to load transactions');
-      renderTransactions(data.transactions);
-    } catch (e) {
-      setMsg($('txnMsg'), e.message, 'error');
-    } finally {
-      $('txnBtn').disabled = false;
-      $('txnBtn').textContent = 'Refresh transactions';
-    }
-  }
-
-  $('txnBtn').addEventListener('click', loadTransactions);
-  $('unlockBtn').addEventListener('click', unlock);
-  $('passcode').addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
-  $('refreshBtn').addEventListener('click', refresh);
-  $('sendBtn').addEventListener('click', send);
-  $('confirmBtn').addEventListener('click', confirmTxn);
-  $('txnOtp').addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmTxn(); });
+// ── Service Worker registration ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
 </script>
 </body>
 </html>
